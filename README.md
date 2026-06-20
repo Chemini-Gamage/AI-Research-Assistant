@@ -170,18 +170,14 @@ Gemini's free tier caps `gemini-2.5-flash` at **20 requests per day** per Google
 ---
 
 ## 📸 Demo
+<img width="1840" height="911" alt="image" src="https://github.com/user-attachments/assets/936ce75b-ef01-409b-a278-d60228e2f31e" />
 
-_(Add a screenshot or GIF of the chat interface here)_
 
----
 
-## 🚀 Deployment Notes
-
-- **Frontend** → Vercel works well for Next.js out of the box
-- **Backend** → Render or Railway for FastAPI; ensure `faiss_index/` is either persisted via a volume or rebuilt on startup, since most platforms wipe ephemeral disk on redeploy
-- Update CORS `allow_origins` in `main.py` to your deployed frontend domain before going live
 
 ---
+
+
 
 ## ⭐ Contributing
 
