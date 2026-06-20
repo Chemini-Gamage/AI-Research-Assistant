@@ -1,9 +1,83 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactElement } from "react";
+import { useTheme } from "next-themes";
 
 type Message = { role: "user" | "ai"; text: string };
 type UploadState = "idle" | "uploading" | "ready" | "error";
+type ThemeChoice = "light" | "dark" | "system";
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const options: { value: ThemeChoice; label: string; icon: ReactElement }[] = [
+    {
+      value: "light",
+      label: "Light",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+        </svg>
+      ),
+    },
+    {
+      value: "dark",
+      label: "Dark",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      ),
+    },
+    {
+      value: "system",
+      label: "System",
+      icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+      ),
+    },
+  ];
+
+  if (!mounted) {
+    return <div className="h-8 w-[108px] rounded-md bg-[#F0F2F5] dark:bg-[#141B2C]" />;
+  }
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Theme"
+      className="inline-flex items-center gap-0.5 p-0.5 rounded-md border border-[#E2E5EA] dark:border-[#243049] bg-[#F0F2F5] dark:bg-[#141B2C]"
+    >
+      {options.map((opt) => {
+        const active = theme === opt.value;
+        return (
+          <button
+            key={opt.value}
+            role="radio"
+            aria-checked={active}
+            aria-label={opt.label}
+            title={opt.label}
+            onClick={() => setTheme(opt.value)}
+            className={`flex items-center justify-center w-7 h-7 rounded-[5px] transition-colors ${
+              active
+                ? "bg-white dark:bg-[#243049] text-[#1E3A8A] dark:text-[#9DBBF5] shadow-[0_0_0_1px_rgba(30,58,138,0.08)]"
+                : "text-[#94A0B3] dark:text-[#5C6B8A] hover:text-[#1E3A8A] dark:hover:text-[#9DBBF5]"
+            }`}
+          >
+            {opt.icon}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Home() {
   const [question, setQuestion] = useState("");
@@ -168,92 +242,66 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] text-[#1C1C1A] flex flex-col">
-      <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
-
-        .font-display {
-          font-family: "Source Serif 4", Georgia, serif;
-        }
-        .font-body {
-          font-family: "Inter", system-ui, sans-serif;
-        }
-        .font-mono {
-          font-family: "JetBrains Mono", ui-monospace, monospace;
-        }
-        .thread::-webkit-scrollbar {
-          width: 8px;
-        }
-        .thread::-webkit-scrollbar-thumb {
-          background: #e5e3dc;
-          border-radius: 4px;
-        }
-        .thread::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        @keyframes dotPulse {
-          0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
-          40% { opacity: 1; transform: translateY(-2px); }
-        }
-        .typing-dot {
-          animation: dotPulse 1.2s infinite ease-in-out;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .typing-dot { animation: none; }
-        }
-      `}</style>
-
-      <div className="font-body w-full max-w-2xl mx-auto px-5 sm:px-6 py-10 flex flex-col flex-1 min-h-screen">
-        {/* Header */}
-        <header className="mb-8">
-          <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[#8C8A82] mb-2">
-            Research Assistant
-          </p>
-          <h1 className="font-display text-[28px] sm:text-[32px] font-medium leading-tight text-[#1C1C1A]">
-            Ask your document anything.
-          </h1>
+    <div className="min-h-screen bg-white dark:bg-[#0B0F19] text-[#1A2230] dark:text-[#E6EAF2] flex flex-col transition-colors">
+      <div className="w-full max-w-2xl mx-auto px-5 sm:px-6 py-10 flex flex-col flex-1 min-h-screen">
+        {/* Header / wordmark */}
+        <header className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <h1 className="font-display italic text-[26px] sm:text-[30px] font-medium leading-none text-[#1E3A8A] dark:text-[#9DBBF5]">
+                Intellexar
+              </h1>
+              <span className="font-mono text-[10px] tracking-[0.16em] uppercase text-[#94A0B3] dark:text-[#5C6B8A]">
+                research
+              </span>
+            </div>
+            <p className="text-[13px] text-[#5B6576] dark:text-[#8A95AC]">
+              Ask your document anything. Every answer points back to the page it came from.
+            </p>
+          </div>
+          <ThemeToggle />
         </header>
 
         {/* Reference card */}
         <div className="mb-6">
           <div
-            className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${uploadState === "ready"
-              ? "border-[#C9D4C1] bg-[#F3F6F1]"
-              : uploadState === "error"
-                ? "border-[#E3BFB8] bg-[#FBF3F1]"
-                : "border-[#E5E3DC] bg-white"
-              }`}
+            className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+              uploadState === "ready"
+                ? "border-[#BFD3FB] dark:border-[#2A3D6B] bg-[#F0F5FF] dark:bg-[#0F1A2E]"
+                : uploadState === "error"
+                ? "border-[#E3BFB8] dark:border-[#4A352F] bg-[#FBF3F1] dark:bg-[#241915]"
+                : "border-[#E2E5EA] dark:border-[#243049] bg-white dark:bg-[#101626]"
+            }`}
           >
             <span
-              className={`shrink-0 w-2 h-2 rounded-full ${uploadState === "ready"
-                ? "bg-[#7A8B6F]"
-                : uploadState === "uploading"
-                  ? "bg-[#3B4F8A] animate-pulse"
+              className={`shrink-0 w-2 h-2 rounded-full ${
+                uploadState === "ready"
+                  ? "bg-[#2563EB]"
+                  : uploadState === "uploading"
+                  ? "bg-[#1E3A8A] dark:bg-[#7DA8F2] animate-pulse"
                   : uploadState === "error"
-                    ? "bg-[#B85C4A]"
-                    : "bg-[#D8D5CC]"
-                }`}
+                  ? "bg-[#B85C4A]"
+                  : "bg-[#D5DAE2] dark:bg-[#33405C]"
+              }`}
               aria-hidden
             />
 
             <div className="flex-1 min-w-0">
               {file ? (
-                <p className="font-mono text-[13px] truncate text-[#1C1C1A]">
-                  {file.name}
-                </p>
+                <p className="font-mono text-[13px] truncate">{file.name}</p>
               ) : (
-                <p className="font-mono text-[13px] text-[#8C8A82]">
+                <p className="font-mono text-[13px] text-[#94A0B3] dark:text-[#5C6B8A]">
                   No document selected
                 </p>
               )}
-              <p className="text-[12px] text-[#8C8A82] mt-0.5">
+              <p className="text-[12px] text-[#94A0B3] dark:text-[#5C6B8A] mt-0.5">
                 {uploadState === "ready"
                   ? "Ready — ask a question below"
                   : uploadState === "uploading"
-                    ? "Uploading…"
-                    : uploadState === "error"
-                      ? "Upload failed — try again"
-                      : "Select a file, then upload it as your reference"}
+                  ? "Uploading…"
+                  : uploadState === "error"
+                  ? "Upload failed — try again"
+                  : "Select a file, then upload it as your reference"}
               </p>
             </div>
 
@@ -266,59 +314,69 @@ export default function Home() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="shrink-0 font-body text-[13px] font-medium px-3 py-1.5 rounded-md border border-[#E5E3DC] bg-white hover:bg-[#F4F3EF] transition-colors"
+              className="shrink-0 text-[13px] font-medium px-3 py-1.5 rounded-md border border-[#E2E5EA] dark:border-[#243049] bg-white dark:bg-[#101626] hover:bg-[#F0F2F5] dark:hover:bg-[#161E32] transition-colors"
             >
               Choose file
             </button>
             <button
               onClick={uploadFile}
               disabled={!file || uploadState === "uploading"}
-              className="shrink-0 font-body text-[13px] font-medium px-3 py-1.5 rounded-md bg-[#3B4F8A] text-white hover:bg-[#324375] disabled:bg-[#D8D5CC] disabled:cursor-not-allowed transition-colors"
+              className="shrink-0 text-[13px] font-medium px-3 py-1.5 rounded-md bg-[#1E3A8A] dark:bg-[#3B5BA9] text-white hover:bg-[#16306F] dark:hover:bg-[#4A6BC0] disabled:bg-[#D5DAE2] dark:disabled:bg-[#243049] disabled:text-[#94A0B3] disabled:cursor-not-allowed transition-colors"
             >
               {uploadState === "uploading" ? "Uploading…" : "Upload"}
             </button>
           </div>
         </div>
 
-        {/* Chat thread */}
-        <div className="thread flex-1 overflow-y-auto rounded-lg border border-[#E5E3DC] bg-white px-5 py-5 min-h-[340px] max-h-[480px]">
+        {/* Chat thread — marginalia rail signature element */}
+        <div className="thread flex-1 overflow-y-auto rounded-lg border border-[#E2E5EA] dark:border-[#243049] bg-white dark:bg-[#101626] px-5 py-5 min-h-[340px] max-h-[480px] transition-colors">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-16">
-              <p className="font-display text-[17px] text-[#1C1C1A] mb-1.5">
+              <p className="font-display italic text-[18px] text-[#1E3A8A] dark:text-[#9DBBF5] mb-1.5">
                 Nothing asked yet
               </p>
-              <p className="text-[13px] text-[#8C8A82] max-w-[280px]">
+              <p className="text-[13px] text-[#5B6576] dark:text-[#8A95AC] max-w-[280px]">
                 Upload a document above, then ask a question to get an answer grounded in its contents.
               </p>
             </div>
           ) : (
             <div className="space-y-5">
               {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div className={`max-w-[85%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col gap-1`}>
-                    <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#8C8A82] px-1">
-                      {msg.role === "user" ? "You" : "Assistant"}
-                    </span>
-                    <div
-                      className={`rounded-xl px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap ${msg.role === "user"
-                        ? "bg-[#3B4F8A] text-white rounded-tr-sm"
-                        : "bg-[#F4F3EF] text-[#1C1C1A] rounded-tl-sm"
-                        }`}
-                    >
-                      {msg.text}
-                      {msg.role === "ai" && msg.text === "" && isAsking && i === messages.length - 1 && (
-                        <span className="inline-flex gap-1 items-center">
-                          <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C8A82] inline-block" style={{ animationDelay: "0ms" }} />
-                          <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C8A82] inline-block" style={{ animationDelay: "150ms" }} />
-                          <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#8C8A82] inline-block" style={{ animationDelay: "300ms" }} />
-                        </span>
-                      )}
+                <div key={i} className={msg.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                  {msg.role === "user" ? (
+                    <div className="max-w-[85%] flex flex-col gap-1 items-end">
+                      <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#94A0B3] dark:text-[#5C6B8A] px-1">
+                        You
+                      </span>
+                      <div className="rounded-xl rounded-tr-sm px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap bg-[#1E3A8A] dark:bg-[#3B5BA9] text-white">
+                        {msg.text}
+                      </div>
                     </div>
-
-                  </div>
+                  ) : (
+                    // Marginalia rail: a thin ink-blue rule stands in the margin beside
+                    // each AI answer, like a pen mark next to an annotated passage.
+                    <div className="max-w-[85%] flex flex-col gap-1 items-start w-full">
+                      <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#94A0B3] dark:text-[#5C6B8A] px-1">
+                        Intellexar
+                      </span>
+                      <div className="flex gap-3 w-full">
+                        <span
+                          className="shrink-0 w-[3px] rounded-full bg-[#BFD3FB] dark:bg-[#2A3D6B] mt-0.5 mb-0.5"
+                          aria-hidden
+                        />
+                        <div className="text-[14px] leading-relaxed whitespace-pre-wrap text-[#1A2230] dark:text-[#E6EAF2] py-0.5">
+                          {msg.text}
+                          {msg.text === "" && isAsking && i === messages.length - 1 && (
+                            <span className="inline-flex gap-1 items-center">
+                              <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block" style={{ animationDelay: "0ms" }} />
+                              <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block" style={{ animationDelay: "150ms" }} />
+                              <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block" style={{ animationDelay: "300ms" }} />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               <div ref={threadEndRef} />
@@ -333,12 +391,12 @@ export default function Home() {
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask something about your document…"
-            className="flex-1 font-body text-[14px] rounded-lg border border-[#E5E3DC] bg-white px-4 py-3 outline-none focus:border-[#3B4F8A] focus:ring-2 focus:ring-[#3B4F8A]/15 transition-shadow placeholder:text-[#ACA99F]"
+            className="flex-1 text-[14px] rounded-lg border border-[#E2E5EA] dark:border-[#243049] bg-white dark:bg-[#101626] px-4 py-3 outline-none focus:border-[#2563EB] dark:focus:border-[#7DA8F2] focus:ring-2 focus:ring-[#2563EB]/15 dark:focus:ring-[#7DA8F2]/20 transition-shadow placeholder:text-[#A7AEBB] dark:placeholder:text-[#465272]"
           />
           <button
             onClick={askQuestion}
             disabled={!question.trim() || isAsking}
-            className="shrink-0 font-body text-[14px] font-medium px-5 py-3 rounded-lg bg-[#1C1C1A] text-white hover:bg-[#333230] disabled:bg-[#D8D5CC] disabled:cursor-not-allowed transition-colors"
+            className="shrink-0 text-[14px] font-medium px-5 py-3 rounded-lg bg-[#1E3A8A] dark:bg-[#3B5BA9] text-white hover:bg-[#16306F] dark:hover:bg-[#4A6BC0] disabled:bg-[#D5DAE2] dark:disabled:bg-[#243049] disabled:text-[#94A0B3] disabled:cursor-not-allowed transition-colors"
           >
             Send
           </button>
