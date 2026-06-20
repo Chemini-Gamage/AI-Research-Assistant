@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 import shutil
@@ -8,11 +9,22 @@ from rag.splitter import split_text
 from rag.embeddings import get_embeddings
 from rag.store import create_store, get_store
 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3001",
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # -------------------------
@@ -45,15 +57,7 @@ async def upload(file: UploadFile = File(...)):
         "chunks": len(chunks)
     }
 
-from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 # -------------------------
 # Ask Question Endpoint
 # -------------------------
@@ -68,10 +72,9 @@ def ask(q: str):
     docs = store.similarity_search(q, k=3)
     context = "\n\n".join([d.page_content for d in docs])
 
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)  # ✅ use this
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
-
-    response = llm.predict(
+    response = llm.invoke(
         f"""
 You are a research assistant.
 
@@ -87,6 +90,6 @@ Answer clearly and concisely.
     )
 
     return {
-        "answer": response,
+        "answer": response.content,
         "sources": len(docs)
     }
